@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L Inventory Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #ffc107;
+            --accent-color: #28a745;
+            --dark-color: #343a40;
+            --light-color: #f8f9fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: white;
+        }
+
+        .login-container {
+            background-color: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            width: 400px;
+            text-align: center;
+            z-index: 100;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            text-align: left;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        input:focus {
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        button {
+            background: linear-gradient(45deg, var(--primary-color), #007bff);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 86, 179, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 86, 179, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .logo-container {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            text-align: center;
+        }
+
+        .powered-by-l {
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 10px rgba(0, 123, 255, 0.7);
+            animation: glow 2s infinite alternate;
+            margin-bottom: 10px;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--primary-color), 0 0 20px var(--primary-color);
+            }
+            to {
+                text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px var(--primary-color), 0 0 40px var(--primary-color);
+            }
+        }
+
+        #warehouse-3d {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .truck-container {
+            position: absolute;
+            bottom: 50px;
+            left: -300px;
+            z-index: 5;
+            width: 300px;
+            height: 150px;
+            animation: drive 25s linear infinite;
+        }
+
+        @keyframes drive {
+            0% {
+                transform: translateX(-300px);
+            }
+            100% {
+                transform: translateX(calc(100vw + 300px));
+            }
+        }
+
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: float-up linear infinite;
+        }
+
+        @keyframes float-up {
+            to {
+                transform: translateY(-100vh);
+            }
+        }
+
+        .features {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 10;
+        }
+
+        .feature {
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            padding: 15px 25px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            animation: fadeIn 1s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .feature:nth-child(1) { animation-delay: 0.5s; }
+        .feature:nth-child(2) { animation-delay: 0.8s; }
+        .feature:nth-child(3) { animation-delay: 1.1s; }
+
+        .feature-icon {
+            font-size: 20px;
+            color: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <div id="warehouse-3d"></div>
+
+    <div class="particles" id="particles"></div>
+
+    <div class="logo-container">
+        <div class="powered-by-lesiba">POWERED BY LESIBA</div>
+    </div>
+
+    <div class="truck-container" id="truck-container">
+        <!-- 3D Truck will be rendered here -->
+    </div>
+
+    <div class="login-container">
+        <h1>WAREHOUSE INTELLIGENCE PLATFORM</h1>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="username">OPERATOR ID</label>
+                <input type="text" id="username" placeholder="Enter your operator ID" required>
+            </div>
+            <div class="input-group">
+                <label for="password">ACCESS CODE</label>
+                <input type="password" id="password" placeholder="Enter your secure code" required>
+            </div>
+            <button type="submit">AUTHENTICATE</button>
+        </form>
+    </div>
+
+    <div class="features">
+        <div class="feature">
+            <span class="feature-icon">📊</span>
+            <span>Real-time Inventory Tracking</span>
+        </div>
+        <div class="feature">
+            <span class="feature-icon">🤖</span>
+            <span>Optimized Replenishment system</span>
+        </div>
+        <div class="feature">
+            <span class="feature-icon">🔍</span>
+            <span>Smart Bin Verification</span>
+        </div>
+    </div>
+
+    <script>
+        // Create particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+
+            // Random size between 1px and 3px
+            const size = Math.random() * 2 + 1;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+
+            // Random position
+            particle.style.left = `${Math.random() * 100}%`;
+            particle.style.bottom = `-10px`;
+
+            // Random animation duration between 10s and 20s
+            const duration = Math.random() * 10 + 10;
+            particle.style.animationDuration = `${duration}s`;
+
+            // Random delay
+            particle.style.animationDelay = `${Math.random() * 10}s`;
+
+            particlesContainer.appendChild(particle);
+        }
+
+        // Three.js Warehouse Scene
+        const warehouseScene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 0);
+        document.getElementById('warehouse-3d').appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        warehouseScene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(1, 1, 1);
+        warehouseScene.add(directionalLight);
+
+        const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.5);
+        warehouseScene.add(hemisphereLight);
+
+        // Create warehouse racks
+        const createWarehouse = () => {
+            // Floor
+            const floorGeometry = new THREE.PlaneGeometry(100, 100);
+            const floorMaterial = new THREE.MeshStandardMaterial({
+                color: 0x333333,
+                metalness: 0.3,
+                roughness: 0.8
+            });
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            warehouseScene.add(floor);
+
+            // Racks
+            const rackMaterial = new THREE.MeshStandardMaterial({
+                color: 0x555555,
+                metalness: 0.5,
+                roughness: 0.7
+            });
+
+            const binMaterial = new THREE.MeshStandardMaterial({
+                color: 0x1e88e5,
+                transparent: true,
+                opacity: 0.8,
+                metalness: 0.3,
+                roughness: 0.4
+            });
+
+            // Create multiple racks
+            for (let z = -40; z <= 40; z += 20) {
+                for (let x = -30; x <= 30; x += 15) {
+                    // Vertical supports
+                    const supportGeometry = new THREE.BoxGeometry(0.5, 10, 0.5);
+                    const support1 = new THREE.Mesh(supportGeometry, rackMaterial);
+                    support1.position.set(x - 3, 5, z);
+                    warehouseScene.add(support1);
+
+                    const support2 = new THREE.Mesh(supportGeometry, rackMaterial);
+                    support2.position.set(x + 3, 5, z);
+                    warehouseScene.add(support2);
+
+                    // Horizontal shelves
+                    for (let y = 1; y <= 9; y += 2) {
+                        const shelfGeometry = new THREE.BoxGeometry(7, 0.1, 3);
+                        const shelf = new THREE.Mesh(shelfGeometry, rackMaterial);
+                        shelf.position.set(x, y, z);
+                        warehouseScene.add(shelf);
+
+                        // Add some bins with stock
+                        if (Math.random() > 0.3) {
+                            const binGeometry = new THREE.BoxGeometry(2, 1.5, 1.5);
+                            const bin = new THREE.Mesh(binGeometry, binMaterial);
+                            bin.position.set(x + (Math.random() - 0.5) * 4, y + 0.8, z + (Math.random() - 0.5) * 2);
+                            warehouseScene.add(bin);
+
+                            // Add stock items inside bins
+                            if (Math.random() > 0.5) {
+                                const itemCount = Math.floor(Math.random() * 5) + 1;
+                                const itemColor = new THREE.Color(
+                                    Math.random() * 0.5 + 0.5,
+                                    Math.random() * 0.5 + 0.5,
+                                    Math.random() * 0.5 + 0.5
+                                );
+
+                                for (let i = 0; i < itemCount; i++) {
+                                    const itemGeometry = new THREE.BoxGeometry(
+                                        Math.random() * 0.5 + 0.3,
+                                        Math.random() * 0.5 + 0.3,
+                                        Math.random() * 0.5 + 0.3
+                                    );
+                                    const itemMaterial = new THREE.MeshStandardMaterial({
+                                        color: itemColor,
+                                        metalness: 0.2,
+                                        roughness: 0.6
+                                    });
+                                    const item = new THREE.Mesh(itemGeometry, itemMaterial);
+
+                                    // Position items inside the bin
+                                    item.position.set(
+                                        bin.position.x + (Math.random() - 0.5) * 1.2,
+                                        bin.position.y - 0.5 + (Math.random() * 0.7),
+                                        bin.position.z + (Math.random() - 0.5) * 1.2
+                                    );
+
+                                    // Random rotation
+                                    item.rotation.set(
+                                        Math.random() * Math.PI,
+                                        Math.random() * Math.PI,
+                                        Math.random() * Math.PI
+                                    );
+
+                                    warehouseScene.add(item);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Add some warehouse details
+            const ceilingGeometry = new THREE.BoxGeometry(100, 0.5, 100);
+            const ceilingMaterial = new THREE.MeshStandardMaterial({ color: 0x777777 });
+            const ceiling = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
+            ceiling.position.y = 12;
+            warehouseScene.add(ceiling);
+
+            // Add some lighting fixtures
+            for (let x = -40; x <= 40; x += 20) {
+                for (let z = -40; z <= 40; z += 20) {
+                    const lightGeometry = new THREE.SphereGeometry(1, 16, 16);
+                    const lightMaterial = new THREE.MeshStandardMaterial({
+                        color: 0xffffcc,
+                        emissive: 0xffffcc,
+                        emissiveIntensity: 1
+                    });
+                    const lightFixture = new THREE.Mesh(lightGeometry, lightMaterial);
+                    lightFixture.position.set(x, 11, z);
+                    warehouseScene.add(lightFixture);
+
+                    // Add actual light source
+                    const pointLight = new THREE.PointLight(0xffffcc, 0.8, 15);
+                    pointLight.position.set(x, 10, z);
+                    warehouseScene.add(pointLight);
+                }
+            }
+        };
+
+        // Create the warehouse
+        createWarehouse();
+
+        // Camera position
+        camera.position.set(0, 15, 30);
+        camera.lookAt(0, 5, 0);
+
+        // Add orbit controls for viewing
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 15;
+        controls.maxDistance = 50;
+        controls.maxPolarAngle = Math.PI * 0.5;
+
+        // Animation loop
+        const animate = function () {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(warehouseScene, camera);
+        };
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', function () {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Load Mercedes-Benz truck model (simplified version with basic shapes)
+        const createTruck = () => {
+            const truckGroup = new THREE.Group();
+
+            // Truck cabin
+            const cabinGeometry = new THREE.BoxGeometry(6, 3, 3);
+            const cabinMaterial = new THREE.MeshStandardMaterial({
+                color: 0x000000,
+                metalness: 0.7,
+                roughness: 0.3
+            });
+            const cabin = new THREE.Mesh(cabinGeometry, cabinMaterial);
+            cabin.position.y = 2;
+            truckGroup.add(cabin);
+
+            // Truck chassis
+            const chassisGeometry = new THREE.BoxGeometry(10, 1.5, 3);
+            const chassisMaterial = new THREE.MeshStandardMaterial({
+                color: 0x000000,
+                metalness: 0.5,
+                roughness: 0.4
+            });
+            const chassis = new THREE.Mesh(chassisGeometry, chassisMaterial);
+            chassis.position.y = 0.75;
+            chassis.position.z = -2;
+            truckGroup.add(chassis);
+
+            // Wheels
+            const wheelGeometry = new THREE.CylinderGeometry(1, 1, 0.5, 32);
+            const wheelMaterial = new THREE.MeshStandardMaterial({
+                color: 0x222222,
+                metalness: 0.8,
+                roughness: 0.2
+            });
+
+            const wheelPositions = [
+                { x: -2, y: 1, z: 3.5 },
+                { x: 2, y: 1, z: 3.5 },
+                { x: -2, y: 1, z: -5.5 },
+                { x: 2, y: 1, z: -5.5 }
+            ];
+
+            wheelPositions.forEach(pos => {
+                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheel.rotation.z = Math.PI / 2;
+                wheel.position.set(pos.x, pos.y, pos.z);
+                truckGroup.add(wheel);
+            });
+
+            // Mercedes logo
+            const logoGeometry = new THREE.CylinderGeometry(0.8, 0.8, 0.2, 32);
+            const logoMaterial = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                metalness: 1.0,
+                roughness: 0.1
+            });
+            const logo = new THREE.Mesh(logoGeometry, logoMaterial);
+            logo.position.set(0, 3.5, 1.6);
+            truckGroup.add(logo);
+
+            // Container (simplified)
+            const containerGeometry = new THREE.BoxGeometry(8, 4, 12);
+            const containerMaterial = new THREE.MeshStandardMaterial({
+                color: 0x1e88e5,
+                metalness: 0.3,
+                roughness: 0.6
+            });
+            const container = new THREE.Mesh(containerGeometry, containerMaterial);
+            container.position.set(0, 2.5, -7);
+            truckGroup.add(container);
+
+            // Add some boxes inside container
+            for (let i = 0; i < 5; i++) {
+                const boxGeometry = new THREE.BoxGeometry(
+                    Math.random() * 1.5 + 1,
+                    Math.random() * 1.5 + 1,
+                    Math.random() * 1.5 + 1
+                );
+                const boxMaterial = new THREE.MeshStandardMaterial({
+                    color: Math.random() * 0xffffff,
+                    metalness: 0.2,
+                    roughness: 0.5
+                });
+                const box = new THREE.Mesh(boxGeometry, boxMaterial);
+
+                box.position.set(
+                    (Math.random() - 0.5) * 6,
+                    1 + Math.random() * 2,
+                    -7 + (Math.random() - 0.5) * 10
+                );
+
+                box.rotation.y = Math.random() * Math.PI;
+
+                truckGroup.add(box);
+            }
+
+            return truckGroup;
+        };
+
+        const truck = createTruck();
+        truck.position.y = 1;
+        warehouseScene.add(truck);
+
+        // Animate truck along path
+        const truckPath = [];
+        for (let i = 0; i < 100; i++) {
+            truckPath.push(new THREE.Vector3(
+                Math.sin(i * 0.1) * 30,
+                1,
+                Math.cos(i * 0.1) * 30 - 30
+            ));
+        }
+
+        let pathIndex = 0;
+        const truckSpeed = 0.5;
+
+        const animateTruck = () => {
+            pathIndex = (pathIndex + truckSpeed) % truckPath.length;
+            const targetPosition = truckPath[Math.floor(pathIndex)];
+            const nextPosition = truckPath[Math.floor((pathIndex + 1) % truckPath.length)];
+
+            truck.position.copy(targetPosition);
+
+            // Make truck face direction of movement
+            truck.lookAt(nextPosition);
+
+            // Rotate wheels
+            truck.children.forEach(child => {
+                if (child.geometry instanceof THREE.CylinderGeometry) {
+                    child.rotation.x -= 0.1;
+                }
+            });
+
+            requestAnimationFrame(animateTruck);
+        };
+
+        animateTruck();
+
+        // Login form functionality
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Add cool authentication effect
+            if(username && password) {
+                // Create particle explosion effect
+                for (let i = 0; i < 50; i++) {
+                    const particle = document.createElement('div');
+                    particle.style.position = 'absolute';
+                    particle.style.width = '10px';
+                    particle.style.height = '10px';
+                    particle.style.backgroundColor = '#007bff';
+                    particle.style.borderRadius = '50%';
+                    particle.style.left = `${Math.random() * 100}%`;
+                    particle.style.top = `${Math.random() * 100}%`;
+                    particle.style.pointerEvents = 'none';
+                    particle.style.transform = 'translate(-50%, -50%)';
+                    particle.style.animation = `explode ${Math.random() * 0.5 + 0.5}s forwards`;
+
+                    document.body.appendChild(particle);
+
+                    setTimeout(() => {
+                        particle.remove();
+                    }, 500);
+                }
+
+                // Add CSS for explosion animation
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    @keyframes explode {
+                        0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+                        100% { transform: translate(-50%, -50%) scale(10); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                setTimeout(() => {
+                    alert('Authentication successful! Access granted.');
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+            } else {
+                alert('Please enter both credentials');
+            }
+        });
+    </script>
+</body>
+</html>

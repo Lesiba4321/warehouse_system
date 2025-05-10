@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L Inventory - Empty Bins</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #ffc107;
+            --accent-color: #28a745;
+            --dark-color: #343a40;
+            --light-color: #f8f9fa;
+            --danger-color: #dc3545;
+            --warning-color: #fd7e14;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background: linear-gradient(180deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            text-align: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo h2 {
+            font-size: 20px;
+            margin-top: 10px;
+            color: var(--secondary-color);
+        }
+
+        .nav-menu {
+            margin-top: 30px;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid var(--secondary-color);
+        }
+
+        .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid var(--secondary-color);
+        }
+
+        .nav-item i {
+            margin-right: 10px;
+            font-size: 18px;
+            color: var(--secondary-color);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: var(--dark-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        /* Empty Bins Section */
+        .empty-bins-section {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section-header h2 {
+            font-size: 20px;
+            color: var(--dark-color);
+        }
+
+        .section-tabs {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            border-bottom: 3px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .tab:hover:not(.active) {
+            background-color: #f8f9fa;
+        }
+
+        /* Empty Bins Table */
+        .empty-bins-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .empty-bins-table th,
+        .empty-bins-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .empty-bins-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .empty-bins-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background-color: rgba(253, 126, 20, 0.1);
+            color: var(--warning-color);
+        }
+
+        .status-verified {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--accent-color);
+        }
+
+        .status-discrepancy {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger-color);
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .action-btn.verify {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .action-btn.verify:hover {
+            background-color: #004494;
+        }
+
+        .action-btn.view {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .action-btn.view:hover {
+            background-color: #5a6268;
+        }
+
+        /* Empty Bins Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+            animation: modalFadeIn 0.3s;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 22px;
+            color: var(--dark-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #004494;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* Stock Found Section */
+        .stock-found-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .empty-bins-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="powered-by-lesiba">POWERED BY LESIBA</div>
+                <h2>Inventory Management</h2>
+            </div>
+
+            <div class="nav-menu">
+                <div class="nav-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-boxes"></i>
+                    <span>Bin Verification</span>
+                </div>
+                <div class="nav-item active">
+                    <i class="fas fa-warehouse"></i>
+                    <span>Empty Bins</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-arrow-right-arrow-left"></i>
+                    <span>Replenishment</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-calendar-times"></i>
+                    <span>Expired Stock</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Bins with Issues</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Analytics</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Empty Bins Management</h1>
+                <div class="user-info">
+                    <img src="https://via.placeholder.com/40" alt="User">
+                    <span>Operator ID: WH001</span>
+                </div>
+            </div>
+
+            <!-- Empty Bins Section -->
+            <div class="empty-bins-section">
+                <div class="section-header">
+                    <h2>Empty Bins Verification</h2>
+                    <div>
+                        <button class="btn btn-primary" onclick="openBulkVerification()">
+                            <i class="fas fa-check-double"></i> Bulk Verification
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section-tabs">
+                    <div class="tab active" onclick="filterEmptyBins('all')">All Bins</div>
+                    <div class="tab" onclick="filterEmptyBins('pending')">Pending</div>
+                    <div class="tab" onclick="filterEmptyBins('verified')">Verified</div>
+                    <div class="tab" onclick="filterEmptyBins('discrepancy')">Discrepancy</div>
+                    <div class="tab" onclick="filterEmptyBins('storage')">By Storage Type</div>
+                </div>
+
+                <table class="empty-bins-table">
+                    <thead>
+                        <tr>
+                            <th>Bin Location</th>
+                            <th>Storage Type</th>
+                            <th>Last Count Date</th>
+                            <th>Status</th>
+                            <th>Verified By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>A-01-05</td>
+                            <td>W01</td>
+                            <td>2023-05-08</td>
+                            <td><span class="status-badge status-pending">Pending</span></td>
+                            <td>-</td>
+                            <td>
+                                <button class="action-btn verify" onclick="verifyEmptyBin('A-01-05')">Verify</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>B-02-12</td>
+                            <td>W02</td>
+                            <td>2023-05-09</td>
+                            <td><span class="status-badge status-verified">Verified</span></td>
+                            <td>WH003</td>
+                            <td>
+                                <button class="action-btn view" onclick="viewEmptyBin('B-02-12')">View</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>C-03-08</td>
+                            <td>X01</td>
+                            <td>2023-05-10</td>
+                            <td><span class="status-badge status-discrepancy">Discrepancy</span></td>
+                            <td>WH001</td>
+                            <td>
+                                <button class="action-btn view" onclick="viewEmptyBin('C-03-08')">View</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>D-04-15</td>
+                            <td>E01</td>
+                            <td>2023-05-07</td>
+                            <td><span class="status-badge status-pending">Pending</span></td>
+                            <td>-</td>
+                            <td>
+                                <button class="action-btn verify" onclick="verifyEmptyBin('D-04-15')">Verify</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty Bins Statistics -->
+            <div class="empty-bins-section">
+                <div class="section-header">
+                    <h2>Empty Bins Statistics</h2>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Total Empty Bins</label>
+                        <input type="text" value="42" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Pending Verification</label>
+                        <input type="text" value="28" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Verified Today</label>
+                        <input type="text" value="5" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Discrepancies Found</label>
+                        <input type="text" value="3" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verify Empty Bin Modal -->
+    <div class="modal" id="verifyEmptyBinModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Verify Empty Bin: <span id="emptyBinId">A-01-05</span></h2>
+                <button class="close-modal" onclick="closeModal('verifyEmptyBinModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="emptyBinLocation">Bin Location</label>
+                        <input type="text" id="emptyBinLocation" value="A-01-05" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="emptyStorageType">Storage Type</label>
+                        <input type="text" id="emptyStorageType" value="W01" readonly>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="emptyBinStatus">Bin Status</label>
+                    <select id="emptyBinStatus" onchange="toggleStockFoundSection()">
+                        <option value="empty">Confirmed Empty</option>
+                        <option value="not-empty">Contains Stock</option>
+                        <option value="damaged">Damaged</option>
+                    </select>
+                </div>
+
+                <div id="stockFoundSection" class="stock-found-section">
+                    <h4>Stock Found in Bin</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="foundMaterial">Material</label>
+                            <input type="text" id="foundMaterial" placeholder="Enter material number">
+                        </div>
+                        <div class="form-group">
+                            <label for="foundBatch">Batch</label>
+                            <input type="text" id="foundBatch" placeholder="Enter batch number">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="foundQuantity">Quantity</label>
+                        <input type="number" id="foundQuantity" placeholder="Enter quantity">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stockStatus">Stock Status</label>
+                        <select id="stockStatus">
+                            <option value="valid">Valid Stock</option>
+                            <option value="blocked">Blocked Stock</option>
+                            <option value="expired">Expired</option>
+                            <option value="damaged">Damaged</option>
+                            <option value="unknown">Unknown</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="emptyBinComments">Comments</label>
+                    <textarea id="emptyBinComments" rows="3" placeholder="Add any comments or notes"></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="closeModal('verifyEmptyBinModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitEmptyBinVerification()">Submit Verification</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Empty Bin Modal -->
+    <div class="modal" id="viewEmptyBinModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Empty Bin Details: <span id="viewBinId">B-02-12</span></h2>
+                <button class="close-modal" onclick="closeModal('viewEmptyBinModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Bin Location</label>
+                        <input type="text" value="B-02-12" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Storage Type</label>
+                        <input type="text" value="W02" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <input type="text" value="Verified" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Verified By</label>
+                        <input type="text" value="WH003 (Ntombi Mohlala)" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Verification Date</label>
+                        <input type="text" value="2023-05-09 14:30" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Count Date</label>
+                        <input type="text" value="2023-05-09" readonly>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Comments</label>
+                    <textarea rows="3" readonly>Bin confirmed empty during morning cycle count.</textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="closeModal('viewEmptyBinModal')">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Verification Modal -->
+    <div class="modal" id="bulkVerificationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Bulk Empty Bins Verification</h2>
+                <button class="close-modal" onclick="closeModal('bulkVerificationModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="bulkStorageType">Storage Type</label>
+                    <select id="bulkStorageType">
+                        <option value="all">All Storage Types</option>
+                        <option value="W01">W01 - Picking Area 1</option>
+                        <option value="W02">W02 - Picking Area 2</option>
+                        <option value="X01">X01 - Bulk Storage</option>
+                        <option value="E01">E01 - Empty Bins</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="bulkZone">Zone (Optional)</label>
+                    <input type="text" id="bulkZone" placeholder="Enter zone (e.g., A, B, C)">
+                </div>
+
+                <div class="form-group">
+                    <label for="bulkStatus">Verification Status</label>
+                    <select id="bulkStatus">
+                        <option value="verified">Mark as Verified</option>
+                        <option value="discrepancy">Mark as Discrepancy</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="bulkComments">Comments (Applies to all)</label>
+                    <textarea id="bulkComments" rows="3" placeholder="Add any comments or notes"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Selected Bins (5)</label>
+                    <div style="background-color: #f8f9fa; border-radius: 5px; padding: 10px; max-height: 150px; overflow-y: auto;">
+                        <p>A-01-05 (W01)</p>
+                        <p>A-01-06 (W01)</p>
+                        <p>A-01-07 (W01)</p>
+                        <p>B-02-08 (W02)</p>
+                        <p>B-02-09 (W02)</p>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="closeModal('bulkVerificationModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitBulkVerification()">Submit Bulk Verification</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Open modals
+        function verifyEmptyBin(binId) {
+            document.getElementById('emptyBinId').textContent = binId;
+            document.getElementById('emptyBinLocation').value = binId;
+            document.getElementById('verifyEmptyBinModal').style.display = 'flex';
+        }
+
+        function viewEmptyBin(binId) {
+            document.getElementById('viewBinId').textContent = binId;
+            document.getElementById('viewEmptyBinModal').style.display = 'flex';
+            // In a real app, we would load the specific bin data here
+        }
+
+        function openBulkVerification() {
+            document.getElementById('bulkVerificationModal').style.display = 'flex';
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Toggle stock found section based on bin status
+        function toggleStockFoundSection() {
+            const status = document.getElementById('emptyBinStatus').value;
+            const stockSection = document.getElementById('stockFoundSection');
+            stockSection.style.display = status === 'not-empty' ? 'block' : 'none';
+        }
+
+        // Filter empty bins
+        function filterEmptyBins(filter) {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.textContent.toLowerCase().includes(filter) ||
+                    (filter === 'all' && tab.textContent === 'All Bins')) {
+                    tab.classList.add('active');
+                }
+            });
+
+            // In a real app, we would filter the table rows here
+            console.log(`Filtering empty bins by: ${filter}`);
+        }
+
+        // Submit empty bin verification
+        function submitEmptyBinVerification() {
+            const binId = document.getElementById('emptyBinId').textContent;
+            const status = document.getElementById('emptyBinStatus').value;
+            const comments = document.getElementById('emptyBinComments').value;
+
+            if (status === 'not-empty') {
+                const material = document.getElementById('foundMaterial').value;
+                const batch = document.getElementById('foundBatch').value;
+                const quantity = document.getElementById('foundQuantity').value;
+
+                if (!material || !batch || !quantity) {
+                    alert('Please fill in all stock information fields');
+                    return;
+                }
+            }
+
+            // In a real app, we would submit this to the server
+            console.log('Submitting empty bin verification:', {
+                binId,
+                status,
+                comments
+            });
+
+            alert('Empty bin verification submitted successfully!');
+            closeModal('verifyEmptyBinModal');
+
+            // In a real app, we would refresh the table
+        }
+
+        // Submit bulk verification
+        function submitBulkVerification() {
+            const storageType = document.getElementById('bulkStorageType').value;
+            const zone = document.getElementById('bulkZone').value;
+            const status = document.getElementById('bulkStatus').value;
+            const comments = document.getElementById('bulkComments').value;
+
+            // In a real app, we would submit this to the server
+            console.log('Submitting bulk verification:', {
+                storageType,
+                zone,
+                status,
+                comments
+            });
+
+            alert('Bulk verification submitted successfully!');
+            closeModal('bulkVerificationModal');
+
+            // In a real app, we would refresh the table
+        }
+    </script>
+</body>
+</html>

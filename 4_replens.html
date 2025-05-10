@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L Inventory - Replenishment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #ffc107;
+            --accent-color: #28a745;
+            --dark-color: #343a40;
+            --light-color: #f8f9fa;
+            --danger-color: #dc3545;
+            --warning-color: #fd7e14;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background: linear-gradient(180deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            text-align: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo h2 {
+            font-size: 20px;
+            margin-top: 10px;
+            color: var(--secondary-color);
+        }
+
+        .nav-menu {
+            margin-top: 30px;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid var(--secondary-color);
+        }
+
+        .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid var(--secondary-color);
+        }
+
+        .nav-item i {
+            margin-right: 10px;
+            font-size: 18px;
+            color: var(--secondary-color);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: var(--dark-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        /* Replenishment Section */
+        .replenishment-section {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section-header h2 {
+            font-size: 20px;
+            color: var(--dark-color);
+        }
+
+        .section-tabs {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            border-bottom: 3px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .tab:hover:not(.active) {
+            background-color: #f8f9fa;
+        }
+
+        /* Replenishment Table */
+        .replenishment-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .replenishment-table th,
+        .replenishment-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .replenishment-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .replenishment-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background-color: rgba(253, 126, 20, 0.1);
+            color: var(--warning-color);
+        }
+
+        .status-in-progress {
+            background-color: rgba(0, 123, 255, 0.1);
+            color: var(--primary-color);
+        }
+
+        .status-completed {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--accent-color);
+        }
+
+        .status-urgent {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger-color);
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .action-btn.process {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .action-btn.process:hover {
+            background-color: #004494;
+        }
+
+        .action-btn.view {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .action-btn.view:hover {
+            background-color: #5a6268;
+        }
+
+        /* Replenishment Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+            animation: modalFadeIn 0.3s;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 22px;
+            color: var(--dark-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #004494;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* FEFO Visualization */
+        .fefo-visualization {
+            margin-top: 30px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .fefo-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .fefo-batches {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .batch-card {
+            min-width: 150px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .batch-card.recommended {
+            border-left: 4px solid var(--accent-color);
+            background-color: rgba(40, 167, 69, 0.05);
+        }
+
+        .batch-card.expired {
+            border-left: 4px solid var(--danger-color);
+            background-color: rgba(220, 53, 69, 0.05);
+        }
+
+        .batch-card h4 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .batch-card p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="powered-by-lesiba">POWERED BY LESIBA</div>
+                <h2>Inventory Management</h2>
+            </div>
+
+            <div class="nav-menu">
+                <div class="nav-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-boxes"></i>
+                    <span>Bin Verification</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-warehouse"></i>
+                    <span>Empty Bins</span>
+                </div>
+                <div class="nav-item active">
+                    <i class="fas fa-arrow-right-arrow-left"></i>
+                    <span>Replenishment</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-calendar-times"></i>
+                    <span>Expired Stock</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Bins with Issues</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Analytics</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Replenishment Management</h1>
+                <div class="user-info">
+                    <img src="https://via.placeholder.com/40" alt="User">
+                    <span>Operator ID: WH001</span>
+                </div>
+            </div>
+
+            <!-- Replenishment Section -->
+            <div class="replenishment-section">
+                <div class="section-header">
+                    <h2>Replenishment Tasks</h2>
+                    <div>
+                        <button class="btn btn-primary" onclick="openCreateReplenishment()">
+                            <i class="fas fa-plus"></i> Create Replenishment
+                        </button>
+                    </div>
+                </div>
+
+                <div class="section-tabs">
+                    <div class="tab active" onclick="filterReplenishment('all')">All Tasks</div>
+                    <div class="tab" onclick="filterReplenishment('pending')">Pending</div>
+                    <div class="tab" onclick="filterReplenishment('in-progress')">In Progress</div>
+                    <div class="tab" onclick="filterReplenishment('completed')">Completed</div>
+                    <div class="tab" onclick="filterReplenishment('urgent')">Urgent</div>
+                </div>
+
+                <table class="replenishment-table">
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Batch</th>
+                            <th>Source Bin</th>
+                            <th>Destination Bin</th>
+                            <th>Quantity</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>M1001</td>
+                            <td>B2023001</td>
+                            <td>X01-05</td>
+                            <td>W01-12</td>
+                            <td>50</td>
+                            <td>High</td>
+                            <td><span class="status-badge status-urgent">Urgent</span></td>
+                            <td>
+                                <button class="action-btn process" onclick="processReplenishment('M1001')">Process</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>M2045</td>
+                            <td>B2023015</td>
+                            <td>X01-08</td>
+                            <td>W02-03</td>
+                            <td>30</td>
+                            <td>Medium</td>
+                            <td><span class="status-badge status-pending">Pending</span></td>
+                            <td>
+                                <button class="action-btn process" onclick="processReplenishment('M2045')">Process</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>M3056</td>
+                            <td>B2023022</td>
+                            <td>X01-12</td>
+                            <td>W01-08</td>
+                            <td>45</td>
+                            <td>Low</td>
+                            <td><span class="status-badge status-completed">Completed</span></td>
+                            <td>
+                                <button class="action-btn view" onclick="viewReplenishment('M3056')">View</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>M4089</td>
+                            <td>B2023030</td>
+                            <td>X01-15</td>
+                            <td>W02-10</td>
+                            <td>25</td>
+                            <td>High</td>
+                            <td><span class="status-badge status-in-progress">In Progress</span></td>
+                            <td>
+                                <button class="action-btn process" onclick="processReplenishment('M4089')">Process</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- FEFO Visualization -->
+            <div class="replenishment-section">
+                <div class="section-header">
+                    <h2>FEFO (First Expired First Out) Visualization</h2>
+                </div>
+
+                <div class="fefo-visualization">
+                    <div class="fefo-header">
+                        <h3>Material: M1001 - Paracetamol 500mg</h3>
+                        <span>Total Stock: 320 | Replenishment Threshold: 50</span>
+                    </div>
+
+                    <div class="fefo-batches">
+                        <div class="batch-card expired">
+                            <h4>Batch: B2022005</h4>
+                            <p>Qty: 45</p>
+                            <p>Expiry: 2023-03-15</p>
+                            <p>Status: Expired</p>
+                        </div>
+                        <div class="batch-card">
+                            <h4>Batch: B2023001</h4>
+                            <p>Qty: 120</p>
+                            <p>Expiry: 2023-06-20</p>
+                            <p>Location: X01-05</p>
+                        </div>
+                        <div class="batch-card recommended">
+                            <h4>Batch: B2023010</h4>
+                            <p>Qty: 85</p>
+                            <p>Expiry: 2023-07-15</p>
+                            <p>Location: X01-08</p>
+                        </div>
+                        <div class="batch-card">
+                            <h4>Batch: B2023022</h4>
+                            <p>Qty: 70</p>
+                            <p>Expiry: 2023-09-10</p>
+                            <p>Location: X01-12</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Process Replenishment Modal -->
+    <div class="modal" id="processReplenishmentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Process Replenishment</h2>
+                <button class="close-modal" onclick="closeModal('processReplenishmentModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="replenishMaterial">Material</label>
+                        <input type="text" id="replenishMaterial" value="M1001" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="replenishBatch">Batch</label>
+                        <input type="text" id="replenishBatch" value="B2023001" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sourceBin">Source Bin</label>
+                        <input type="text" id="sourceBin" value="X01-05" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="destBin">Destination Bin</label>
+                        <input type="text" id="destBin" value="W01-12" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="systemQty">System Quantity</label>
+                        <input type="text" id="systemQty" value="50" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="movedQty">Quantity Moved</label>
+                        <input type="number" id="movedQty" placeholder="Enter quantity moved">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="replenishStatus">Replenishment Status</label>
+                    <select id="replenishStatus">
+                        <option value="completed">Completed</option>
+                        <option value="partial">Partially Completed</option>
+                        <option value="failed">Failed - Issue Found</option>
+                    </select>
+                </div>
+
+                <div id="replenishIssueSection" style="display: none;">
+                    <div class="form-group">
+                        <label for="issueType">Issue Type</label>
+                        <select id="issueType">
+                            <option value="quantity-mismatch">Quantity Mismatch</option>
+                            <option value="wrong-batch">Wrong Batch</option>
+                            <option value="wrong-material">Wrong Material</option>
+                            <option value="damaged">Damaged Stock</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="issueDescription">Issue Description</label>
+                        <textarea id="issueDescription" rows="3" placeholder="Describe the issue"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="replenishComments">Comments</label>
+                    <textarea id="replenishComments" rows="3" placeholder="Add any comments or notes"></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="closeModal('processReplenishmentModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitReplenishment()">Complete Replenishment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Replenishment Modal -->
+    <div class="modal" id="createReplenishmentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Replenishment</h2>
+                <button class="close-modal" onclick="closeModal('createReplenishmentModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newMaterial">Material</label>
+                        <input type="text" id="newMaterial" placeholder="Enter material number">
+                    </div>
+                    <div class="form-group">
+                        <label for="newBatch">Batch (Optional)</label>
+                        <input type="text" id="newBatch" placeholder="Enter batch number">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sourceStorage">Source Storage Type</label>
+                        <select id="sourceStorage">
+                            <option value="X01">X01 - Bulk Storage</option>
+                            <option value="W01">W01 - Picking Area 1</option>
+                            <option value="W02">W02 - Picking Area 2</option>
+                            <option value="E01">E01 - Empty Bins</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="destStorage">Destination Storage Type</label>
+                        <select id="destStorage">
+                            <option value="W01">W01 - Picking Area 1</option>
+                            <option value="W02">W02 - Picking Area 2</option>
+                            <option value="X01">X01 - Bulk Storage</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="replenishQty">Quantity to Replenish</label>
+                    <input type="number" id="replenishQty" placeholder="Enter quantity">
+                </div>
+
+                <div class="form-group">
+                    <label for="replenishPriority">Priority</label>
+                    <select id="replenishPriority">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="replenishReason">Reason</label>
+                    <select id="replenishReason">
+                        <option value="stock-low">Stock Low in Picking Area</option>
+                        <option value="fefo">FEFO Replenishment</option>
+                        <option value="consolidation">Bin Consolidation</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="replenishNotes">Notes</label>
+                    <textarea id="replenishNotes" rows="3" placeholder="Add any notes"></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="closeModal('createReplenishmentModal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="createReplenishment()">Create Replenishment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Replenishment Modal -->
+    <div class="modal" id="viewReplenishmentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Replenishment Details</h2>
+                <button class="close-modal" onclick="closeModal('viewReplenishmentModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Material</label>
+                        <input type="text" value="M3056" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Batch</label>
+                        <input type="text" value="B2023022" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Source Bin</label>
+                        <input type="text" value="X01-12" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Destination Bin</label>
+                        <input type="text" value="W01-08" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Requested Quantity</label>
+                        <input type="text" value="45" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Moved Quantity</label>
+                        <input type="text" value="45" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <input type="text" value="Completed" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Completed By</label>
+                        <input type="text" value="WH001 (John Doe)" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Created On</label>
+                        <input type="text" value="2023-05-10 08:30" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Completed On</label>
+                        <input type="text" value="2023-05-10 10:45" readonly>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Comments</label>
+                    <textarea rows="3" readonly>Replenishment completed successfully. All stock verified.</textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="closeModal('viewReplenishmentModal')">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Open modals
+        function openCreateReplenishment() {
+            document.getElementById('createReplenishmentModal').style.display = 'flex';
+        }
+
+        function processReplenishment(material) {
+            document.getElementById('processReplenishmentModal').style.display = 'flex';
+            // In a real app, we would load the specific replenishment data here
+        }
+
+        function viewReplenishment(material) {
+            document.getElementById('viewReplenishmentModal').style.display = 'flex';
+            // In a real app, we would load the specific replenishment data here
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Filter replenishment tasks
+        function filterReplenishment(filter) {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.textContent.toLowerCase().includes(filter) ||
+                    (filter === 'all' && tab.textContent === 'All Tasks')) {
+                    tab.classList.add('active');
+                }
+            });
+
+            // In a real app, we would filter the table rows here
+            console.log(`Filtering by: ${filter}`);
+        }
+
+        // Show/hide issue section based on status
+        document.getElementById('replenishStatus').addEventListener('change', function() {
+            const issueSection = document.getElementById('replenishIssueSection');
+            issueSection.style.display = this.value === 'failed' ? 'block' : 'none';
+        });
+
+        // Submit replenishment
+        function submitReplenishment() {
+            const status = document.getElementById('replenishStatus').value;
+            const movedQty = document.getElementById('movedQty').value;
+            const comments = document.getElementById('replenishComments').value;
+
+            if (!movedQty) {
+                alert('Please enter the quantity moved');
+                return;
+            }
+
+            // In a real app, we would submit this to the server
+            console.log('Submitting replenishment:', {
+                status,
+                movedQty,
+                comments
+            });
+
+            alert('Replenishment submitted successfully!');
+            closeModal('processReplenishmentModal');
+
+            // In a real app, we would refresh the table
+        }
+
+        // Create new replenishment
+        function createReplenishment() {
+            const material = document.getElementById('newMaterial').value;
+            const batch = document.getElementById('newBatch').value;
+            const source = document.getElementById('sourceStorage').value;
+            const dest = document.getElementById('destStorage').value;
+            const qty = document.getElementById('replenishQty').value;
+            const priority = document.getElementById('replenishPriority').value;
+            const reason = document.getElementById('replenishReason').value;
+            const notes = document.getElementById('replenishNotes').value;
+
+            if (!material || !qty) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            // In a real app, we would submit this to the server
+            console.log('Creating new replenishment:', {
+                material,
+                batch,
+                source,
+                dest,
+                qty,
+                priority,
+                reason,
+                notes
+            });
+
+            alert('Replenishment created successfully!');
+            closeModal('createReplenishmentModal');
+
+            // In a real app, we would refresh the table
+        }
+    </script>
+</body>
+</html>
